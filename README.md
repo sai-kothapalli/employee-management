@@ -9,7 +9,7 @@ Tools used
   * [RAML](http://mulesoft.org)
   * [APIkit](http://www.mulesoft.org/documentation/display/current/APIkit)
   * [MuleStudio](http://www.mulesoft.com/mule-studio)
-  * Maven
+  
  
 Prerequisite
 -------------
@@ -21,10 +21,6 @@ Prerequisite
 Getting started
 ----------------------
 1. Clone project
-   ```sh
-   git clone git@github.com:bvpatel/mule-raml-employee-api.git
-   ```
-
 2. Import project in AnyPoint Studio 
 3. Goto "src/main/api"
 4. Right click on "employee.raml" and select "Mule"
