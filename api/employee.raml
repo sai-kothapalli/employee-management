@@ -1,0 +1,280 @@
+#%RAML 1.0
+title: employee
+
+/employees:
+  description: Employees Details
+  post:
+    description: Add a new Employee
+    body: 
+     application/json:
+      example: !include example/employee.json
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+                      {
+                      "employeeID": 18
+                      }
+      400:
+        body:
+          application/json:
+            example: |
+                      {
+                            "status" : "Bad Request"
+                      } 
+      401:
+        body:
+          application/json:
+            example: |
+                      {
+                            "status" : "Un Authorized"
+                      }
+      403:
+        body:
+          application/json:
+            example: |
+                        {
+                            "status" : "Forbidden"
+                        }                                                       
+      404:
+        body:
+          application/json:
+            example: |
+                        {
+                            "status" : "Not Found"
+                        }    
+      405:
+        body:
+          application/json:
+            example: |
+                        {
+                            "status" : "Method Not Allowed"
+                        }                        
+      500:
+        body:
+          application/json:
+            example: |
+                        {
+                            "status" : "Internal Error"
+                        }
+      503:
+        body:
+          application/json:
+            example: |
+                        {
+                            "status" : "Service Unavailable"
+                        }
+      504:
+        body:
+          application/json:
+            example: |
+                        {
+                            "status" : "Gateway Timeout"
+                        }
+  /{employeeID}:
+    description: A single employee details
+    uriParameters:
+      employeeID:
+        description: Employee ID
+        type: integer
+        
+    get:
+      description: View a single employee details by Employee ID
+      responses:
+        200:
+          body:
+            application/json:
+              example: !include example/employee.json
+        400:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Bad Request"
+                        } 
+        401:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Un Authorized"
+                        }
+        403:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Forbidden"
+                        }                                                       
+        404:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Not Found"
+                        }    
+        405:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Method Not Allowed"
+                        }                        
+        500:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Internal Error"
+                        }
+        503:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Service Unavailable"
+                        }
+        504:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Gateway Timeout"
+                        }              
+    put:
+      description: Add a new Employee
+      body: 
+        application/json:
+          example: 
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Successfully Updated"
+                        }
+        400:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Bad Request"
+                        } 
+        401:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Un Authorized"
+                        }
+        403:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Forbidden"
+                        }                                                       
+        404:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Not Found"
+                        }    
+        405:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Method Not Allowed"
+                        }                        
+        500:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Internal Error"
+                        }
+        503:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Service Unavailable"
+                        }
+        504:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Gateway Timeout"
+                        }
+
+    delete:
+      description: Add a new Employee
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Successfully Deleted"
+                        }
+        400:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Bad Request"
+                        } 
+        401:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Un Authorized"
+                        }
+        403:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Forbidden"
+                        }                                                       
+        404:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Not Found"
+                        }    
+        405:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Method Not Allowed"
+                        }                        
+        500:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Internal Error"
+                        }
+        503:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Service Unavailable"
+                        }
+        504:
+          body:
+            application/json:
+              example: |
+                        {
+                            "status" : "Gateway Timeout"
+                        }

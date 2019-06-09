@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+    <db:mysql-config name="MySQL_Configuration" url="jdbc:mysql://localhost:3306/employees?user=root&amp;password=root123@&amp;serverTimezone=America/New_York" doc:name="MySQL Configuration"/>
+    <sub-flow name="get_employee_implementationSub_Flow">
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select e.birth_date, e.first_name, e.last_name, e.gender, e.title 
+from employees e 
+where e.emp_no = #[flowVars.employeeID];]]></db:parameterized-query>
+        </db:select>
+        <dw:transform-message doc:name="Transform Message" metadata:id="fed2d0ab-faaf-4cce-9ecb-3c4261d93be6">
+            <dw:set-variable variableName="basic_info"><![CDATA[%dw 1.0
+%output application/json
+---
+{
+		FirstName: payload.first_name[0],
+		LastName: payload.last_name[0],
+		DOB: payload.birth_date[0],
+		Gender: payload.gender[0],
+		Title: payload.title[0]
+}]]></dw:set-variable>
+        </dw:transform-message>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select ea.addr_type, ea.house_number, ea.street, ea.unit, ea.City, ea.State, ea.zipcode from employees e 
+right join emp_address ea on e.emp_no = #[flowVars.employeeID];]]></db:parameterized-query>
+        </db:select>
+        <dw:transform-message doc:name="Transform Message" metadata:id="41e098ea-3329-4612-9b87-f1703e1b4fc5">
+            <dw:set-variable variableName="emp_address"><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	(payload map ((payload01 , indexOfPayload01) -> {
+		"type": payload01.addr_type,
+		number: payload01.house_number,
+		street: payload01.street,
+		Unit: payload01.unit,
+		City: payload01.City,
+		State: payload01.State,
+		zipcode: payload01.zipcode
+	}))
+}]]></dw:set-variable>
+        </dw:transform-message>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select ec.communication_type, ec.communication_value, ec.preffered from employees e 
+right join emp_communication ec on e.emp_no = #[flowVars.employeeID]]]></db:parameterized-query>
+        </db:select>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	Identification: flowVars.basic_info,
+	Address: flowVars.emp_address,
+	Communication: payload map ((payload01 , indexOfPayload01) -> {
+		type: payload01.communication_type,
+		value: payload01.communication_value,
+		preferred: payload01.preffered
+	})
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </sub-flow>
+    <sub-flow name="delete_employee_implementationSub_Flow">
+        <db:delete config-ref="MySQL_Configuration" doc:name="Database">
+            <db:dynamic-query><![CDATA[delete from emp_address where  emp_number= #[flowVars.employeeID];]]></db:dynamic-query>
+        </db:delete>
+        <db:delete config-ref="MySQL_Configuration" doc:name="Database">
+            <db:dynamic-query><![CDATA[delete from emp_communication where  emp_number= #[flowVars.employeeID];]]></db:dynamic-query>
+        </db:delete>
+        <db:delete config-ref="MySQL_Configuration" doc:name="Database">
+            <db:dynamic-query><![CDATA[delete from employees where  emp_no= #[flowVars.employeeID];]]></db:dynamic-query>
+        </db:delete>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	status: "Successfully Deleted"
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </sub-flow>
+    <sub-flow name="create_employee_implementationSub_Flow">
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-variable variableName="employee_input"><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-variable>
+        </dw:transform-message>
+        <db:insert config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[INSERT INTO employees (birth_date, first_name, last_name, gender, title)
+VALUES (#[flowVars.employee_input.Identification.DOB],#[flowVars.employee_input.Identification.FirstName],#[flowVars.employee_input.Identification.LastName],#[flowVars.employee_input.Identification.Gender],#[flowVars.employee_input.Identification.Title]);]]></db:parameterized-query>
+        </db:insert>
+        <foreach collection="#[flowVars.employee_input.Address]" doc:name="For Each">
+            <db:insert config-ref="MySQL_Configuration" doc:name="Database">
+                <db:parameterized-query><![CDATA[INSERT INTO emp_address (`emp_number`,`addr_type`,`house_number`,`street`,`unit`,`City`,`State`,`zipcode`)
+VALUES (( SELECT emp_no FROM employees WHERE employees.first_name = #[flowVars.employee_input.Identification.FirstName]),#[payload.type],#[payload.number],#[payload.street],#[payload.Unit],#[payload.City],#[payload.State],#[payload.zipcode]);]]></db:parameterized-query>
+            </db:insert>
+        </foreach>
+        <foreach collection="#[flowVars.employee_input.Communication]" doc:name="For Each">
+            <db:insert config-ref="MySQL_Configuration" doc:name="Database">
+                <db:parameterized-query><![CDATA[INSERT INTO emp_communication
+(`emp_number`,
+`communication_type`,
+`communication_value`,
+`preffered`)
+VALUES
+(( SELECT emp_no FROM employees WHERE employees.first_name = #[flowVars.employee_input.Identification.FirstName]),#[payload.type],#[payload.value],#[payload.preferred])]]></db:parameterized-query>
+            </db:insert>
+        </foreach>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	status: "Successfully Created"
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </sub-flow>
+    <sub-flow name="update_employee_implementationSub_Flow">
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-variable variableName="employee_input"><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-variable>
+        </dw:transform-message>
+        <db:update config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[UPDATE employees
+SET 
+birth_date = #[flowVars.employee_input.Identification.DOB], 
+first_name = #[flowVars.employee_input.Identification.FirstName] , 
+last_name = #[flowVars.employee_input.Identification.LastName], 
+gender = #[flowVars.employee_input.Identification.Gender], 
+title = #[flowVars.employee_input.Identification.Title]
+WHERE emp_no = #[flowVars.employeeID];]]></db:parameterized-query>
+        </db:update>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	status: "Successfully updated"
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </sub-flow>
+</mule>
